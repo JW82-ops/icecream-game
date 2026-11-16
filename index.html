@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>수빈이네 아이스크림 이야기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="wrap"><div id="stage">
+
+  <div id="scr-title" class="screen">
+    <div class="shade"></div>
+    <div id="logo"><span class="t1">🍦 지안·지아의</span><div class="t2">수빈이네 <b>아이스크림</b> 이야기</div></div>
+    <button class="btn white small" id="btn-sound">🎵</button>
+    <button class="btn white small" id="btn-parent">👨‍👩‍👧 부모님</button>
+    <div id="profiles"></div>
+  </div>
+
+  <div id="scr-setup" class="screen"></div>
+
+  <div id="scr-shop" class="screen">
+    <div id="scene">
+      <img id="bg" alt="">
+      <div id="decor-layer"></div>
+      <img id="kid" alt="">
+      <div id="kid-say"></div>
+      <img id="counter" src="img/decor/counter.webp" alt="">
+      <div id="custs"></div>
+      <div id="season-fx"></div>
+      <button class="btn yellow pulse hidden" id="make-btn">🍦 주문 받기!</button>
+      <div id="fx"></div>
+      <div id="shutter"><div class="board"><div class="sname"></div><div class="open">OPEN</div></div></div>
+    </div>
+    <div id="p-info"><div id="p-today"></div><button class="btn yellow pulse hidden" id="p-make">🍦 주문 받기!</button><div id="p-quests"></div></div>
+    <div id="hud">
+      <div class="hbox"><img id="h-face" alt=""><div><div id="h-name"></div><div id="h-lv"></div></div></div>
+      <div class="hbox" style="flex-direction:column;align-items:flex-start;justify-content:center;gap:0"><div id="h-date"></div><div class="row" style="gap:4px"><div id="h-clockbar"><i></i></div><span id="h-time"></span></div></div>
+      <div style="flex:1"></div>
+      <div class="hbox" id="h-coins"></div>
+      <div class="hbox" id="h-star"></div>
+      <div class="hbox" id="h-help" title="오늘 남은 엄마·아빠 찬스">👨‍👩‍👧 <b>3</b></div>
+      <div class="hbox" id="h-rep"><img src="img/icons/heart.webp"><div><div id="h-repnum"></div><div id="h-repbar"><i></i></div></div></div>
+      <button class="btn white hbtn" id="h-quest">📋<span class="dot"></span></button>
+      <button class="btn white hbtn" id="h-menu">⏸</button>
+    </div>
+    <div id="banner" class="off"></div>
+    <div id="fever-bar"><i></i><span>🔥 FEVER x2</span></div>
+  </div>
+
+  <div id="overlay"></div>
+</div></div>
+
+<div id="rotate"><div class="ph">📱</div><div style="margin:16px 0">화면을 가로로 돌리면 더 크게 보여요!</div><button class="btn small" id="rotate-ok">그냥 할래요</button></div>
+
+<script src="js/data.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/store.js"></script>
+<script src="js/game.js"></script>
+<script src="js/features.js"></script>
+</body>
+</html>
