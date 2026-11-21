@@ -497,3 +497,6 @@ button{font-family:inherit;}
 .pstar{font-size:16px;}
 #stage.portrait .pcard{width:560px;}
 #stage.portrait #profiles{gap:18px;bottom:40px;}
+#scr-title{background:#fbd3e4 url(../img/bg/title.webp) center 62%/cover no-repeat;}
+#stage.portrait #scr-title{background:#ffe3ef url(../img/bg/title.webp) center top/100% auto no-repeat;}
+#stage.portrait #logo{top:470px;}

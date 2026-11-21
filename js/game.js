@@ -1,4 +1,4 @@
-/* ===== 수빈이네 아이스크림 이야기 v1.0 ===== */
+/* ===== 우리들의 아이스크림 가게 ===== */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };

@@ -1,6 +1,6 @@
 {
-  "name": "수빈이네 아이스크림 이야기",
-  "short_name": "아이스크림 가게",
+  "name": "우리들의 아이스크림 가게",
+  "short_name": "우리들의 아이스크림",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
