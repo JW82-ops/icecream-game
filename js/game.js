@@ -371,6 +371,8 @@ function pickWeather() {
 }
 function startDay() {
   closeAll();
+  const saved = P.dayState && P.dayState.key === dayKey() ? P.dayState : null;
+  if (saved) return resumeDay(saved);
   const weather = pickWeather();
   const n = customersToday(weather);
   const len = isBig() ? 120 : 105;
@@ -391,6 +393,30 @@ function startDay() {
   setTimeout(() => { if (D && D.t < 5) banner(`오늘 손님은 약 ${D.total}명! 점심·하교 시간엔 러시! 🍦`, 2400); }, 2800);
   seasonFx(weather);
   if (P.adsActive && Object.keys(P.adsActive).length && P.day === 1) setTimeout(() => toast(`📣 홍보 효과로 손님이 늘었어요!`), 5200);
+  saveDay();
+}
+function dayKey() { return `${P.year}-${P.month}-${P.day}`; }
+const DAY_FIELDS = ['t', 'len', 'spawns', 'nextSpawn', 'total', 'served', 'earned', 'hearts', 'left', 'weather', 'vipIdx', 'combo', 'maxCombo', 'events', 'sisCame'];
+function saveDay() {
+  if (!P || !D || D.ended) return;
+  const st = { key: dayKey() }; DAY_FIELDS.forEach(k => st[k] = D[k]);
+  // 가게 안에 있던 손님은 다시 들어오게
+  const inside = D.queue.filter(c => !c.served).length;
+  st.nextSpawn = Math.max(0, D.nextSpawn - inside);
+  st.spawns = D.spawns.slice(); for (let i = st.nextSpawn; i < D.nextSpawn; i++) st.spawns[i] = Math.min(st.spawns[i], D.t + 1.5 + (i - st.nextSpawn) * 1.5);
+  if (D.vipIdx >= st.nextSpawn && D.vipIdx < D.nextSpawn) st.vipIdx = D.vipIdx;
+  P.dayState = st; saveP();
+}
+function resumeDay(st) {
+  D = Object.assign({ queue: [], all: [], running: true, paused: false, ended: false, orderOpen: false, fever: 0 }, JSON.parse(JSON.stringify(st)));
+  delete D.key;
+  $('#scene').classList.remove('fever'); const fb = $('#fever-bar'); if (fb) fb.style.display = 'none';
+  $('#custs').innerHTML = '';
+  updateHud(); updateClock(); kidPose('idle');
+  if (S.music) Sound.music('shop');
+  shutter(true, true); setTimeout(() => shutter(false), 450);
+  banner(`▶ 이어서 장사해요! ${P.month}월 ${P.day}일 ${$('#h-time').textContent}`, 2600);
+  seasonFx(D.weather);
 }
 
 let lastT = 0, flakeT = 0;
@@ -429,6 +455,7 @@ function tick(dt) {
   $('#make-btn').classList.toggle('hidden', !showBtn); syncMake(showBtn);
   if (front) updateBubble(front);
   D._pi = (D._pi || 0) + dt; if (D._pi > 0.4) { D._pi = 0; updatePInfo(); }
+  D._sv = (D._sv || 0) + dt; if (D._sv > 4) { D._sv = 0; saveDay(); }
   if (!D.ended && D.t >= D.len && D.nextSpawn >= D.spawns.length && D.all.length === 0) endDay();
 }
 function pickCustomerType(vip) {
@@ -646,6 +673,7 @@ function mismatch(b, o) {
   return '조금 달라요.';
 }
 async function serve(c) {
+  c.served = true;
   const fever = D.fever > 0;
   let price = orderPrice(c.order) * (fever ? 2 : 1);
   const perfect = c.tries === 0 && !c.helped;
@@ -683,7 +711,7 @@ async function serve(c) {
   else if (c.event || c.sis) { await wait(400); }
   else if (Math.random() < (isBig() ? 0.07 : 0.09)) { await runQuiz('change', c, false); }
   customerLeave(c); kidPose('idle');
-  saveP();
+  saveDay();
 }
 function flyCoins(x, y, n) {
   const tgt = scenePos($('#h-coins img'));
@@ -747,7 +775,7 @@ function runQuiz(topic, cust, vip, opts = {}) {
 
 /* ---------------- 하루 끝 ---------------- */
 async function endDay() {
-  D.ended = true; D.running = false; $('#make-btn').classList.add('hidden'); syncMake(false);
+  D.ended = true; D.running = false; P.dayState = null; saveP(); $('#make-btn').classList.add('hidden'); syncMake(false);
   kidPose('wave'); await wait(500); shutter(true); await wait(1300);
   const ch = charm(); const repBonus = Math.floor(ch / 10);
   P.rep += repBonus;
@@ -1041,12 +1069,12 @@ function openMenu() {
     <button class="btn white" id="m-quest" style="width:360px">📋 오늘의 퀘스트</button>
     <button class="btn white" id="m-book" style="width:360px">📖 도감</button>
     <button class="btn white" id="m-sound" style="width:360px">${S.music ? '🔊 음악 끄기' : '🔈 음악 켜기'}</button>
-    <button class="btn gray" id="m-quit" style="width:360px">🏠 처음 화면 (오늘 하루는 다시)</button></div></div>`, { onClose: () => { if (D) D.paused = false; } });
+    <button class="btn gray" id="m-quit" style="width:360px">🏠 처음 화면 (저장하고 나가기)</button></div></div>`, { onClose: () => { if (D) D.paused = false; } });
   m.querySelector('#m-resume').onclick = () => { Sound.sfx('tap'); m.close(); };
   m.querySelector('#m-quest').onclick = () => { m.close(); D.paused = true; showQuests(); };
   m.querySelector('#m-book').onclick = () => { m.close(); D.paused = true; const b = modal(`<div style="width:1180px;padding:20px 24px"><h2>📖 도감</h2><div id="bk"></div></div>`, { close: true, onClose: () => { if (D) D.paused = false; } }); hubBook(b.querySelector('#bk')); };
   m.querySelector('#m-sound').onclick = () => { S.music = !S.music; Sound.set({ music: S.music }); if (S.music) Sound.startBgm(); saveS(); m.close(); };
-  m.querySelector('#m-quit').onclick = () => { Sound.sfx('tap'); closeAll(); D = null; saveP(); P = null; KID = null; renderTitle(); };
+  m.querySelector('#m-quit').onclick = () => { Sound.sfx('tap'); closeAll(); saveDay(); D = null; saveP(); P = null; KID = null; renderTitle(); };
 }
 function showQuests() {
   if (D) D.paused = true;
@@ -1135,6 +1163,7 @@ function init() {
   requestAnimationFrame(loop);
   Store.connect((k) => { if (screen === 'scr-title') { if (k === 'settings') S = Object.assign({}, DEFAULT_SETTINGS, Store.load('settings') || {}); renderTitle(); } });
   if (window.claude && window.claude.use) window.claude.use('tts').then(t => { if (t) Sound.setTts(t); }).catch(() => {});
-  document.addEventListener('visibilitychange', () => { if (document.hidden && P) saveP(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && P) { if (D && !D.ended) saveDay(); else saveP(); } });
+  window.addEventListener('pagehide', () => { if (P) { if (D && !D.ended) saveDay(); else saveP(); } });
 }
 window.addEventListener('DOMContentLoaded', init);
