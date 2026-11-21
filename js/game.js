@@ -115,14 +115,14 @@ function timeLeftSec() {
   if (P.time.date !== today()) { P.time = { date: today(), sec: 0, bonus: 0 }; }
   return S.limit * 60 + (P.time.bonus || 0) - P.time.sec;
 }
-function isBig() { return P.kid === 'jian'; }
+function isBig() { return KIDS[P.kid].mode === 'big'; }
 function researchCost(base) { return P.theme === 'space' ? Math.round(base * 0.8) : base; }
 
 /* ---------------- 타이틀 ---------------- */
 function renderTitle() {
   show('scr-title'); if (S.music) Sound.music('title');
   const box = $('#profiles'); box.innerHTML = '';
-  ['jian', 'jia'].forEach(k => {
+  KID_ORDER.forEach(k => {
     const kid = KIDS[k]; const p = Store.load(k);
     let sub = '새 가게를 열어요!', go = '시작하기 ▶', sleep = false;
     if (p) {
@@ -396,7 +396,7 @@ function startDay() {
   saveDay();
 }
 function dayKey() { return `${P.year}-${P.month}-${P.day}`; }
-const DAY_FIELDS = ['t', 'len', 'spawns', 'nextSpawn', 'total', 'served', 'earned', 'hearts', 'left', 'weather', 'vipIdx', 'combo', 'maxCombo', 'events', 'sisCame'];
+const DAY_FIELDS = ['t', 'len', 'spawns', 'nextSpawn', 'total', 'served', 'earned', 'hearts', 'left', 'weather', 'vipIdx', 'combo', 'maxCombo', 'events', 'sisCame', 'sisKid'];
 function saveDay() {
   if (!P || !D || D.ended) return;
   const st = { key: dayKey() }; DAY_FIELDS.forEach(k => st[k] = D[k]);
@@ -461,7 +461,7 @@ function tick(dt) {
 function pickCustomerType(vip) {
   const lvl = P.level;
   if (D.events && D.events.length && D.nextSpawn >= 1) return { type: D.events.shift(), topic: null, event: true };
-  if (!vip && !D.sisCame && D.nextSpawn > 2 && Store.load(otherKid()) && Math.random() < 0.1) { D.sisCame = true; return { type: 'sis', topic: null, sis: true }; }
+  if (!vip && !D.sisCame && D.nextSpawn > 2 && friendKeys().some(k => Store.load(k)) && Math.random() < 0.1) { D.sisCame = true; D.sisKid = pick(friendKeys().filter(k => Store.load(k))); return { type: 'sis', topic: null, sis: true }; }
   if (vip) {
     if (isBig()) { const r = Math.random(); if (r < 0.5) return { type: Math.random() < 0.5 ? 'king' : 'admiral', topic: 'history' }; if (r < 0.8 && lvl >= 1) return { type: pick(['tourist_w', 'tourist_m']), topic: 'english' }; return { type: pickNormal(), topic: 'math' }; }
     const r = Math.random(); if (r < 0.35) return { type: 'king', topic: 'korean' }; if (r < 0.6) return { type: 'admiral', topic: 'number' }; return { type: pickNormal(), topic: Math.random() < 0.5 ? 'number' : 'korean' };
@@ -914,7 +914,7 @@ function openHub(resume) {
       <div class="hubbtn" data-t="upg"><img src="img/icons/shop.webp">가게 키우기</div>
       <div class="hubbtn" data-t="study"><img src="img/icons/star.webp">공부방</div>
       <div class="hubbtn" data-t="coupon"><img src="img/icons/gift.webp">쿠폰함</div>
-      <div class="hubbtn" data-t="sis"><img src="${KIDS[otherKid()].face}" style="border-radius:16px">${KIDS[otherKid()].name} 가게</div>
+      <div class="hubbtn" data-t="sis"><img src="img/icons/shop.webp">친구 가게</div>
       <div class="hubbtn" data-t="book"><img src="img/icons/sticker.webp">도감</div>
     </div><div id="hub-body"></div>
     <div class="row" style="justify-content:space-between;margin-top:10px"><div style="font-size:30px;color:#b7791f" id="hub-coins"></div><div class="row" id="hub-go"></div></div></div>`);
@@ -1115,7 +1115,7 @@ function parentSettings() {
     <div class="setrow">🎵 배경음악${seg('music', [[true, '켜기'], [false, '끄기']])}</div>
     <div class="setrow">🔔 효과음${seg('sfx', [[true, '켜기'], [false, '끄기']])}</div>
     <div class="setrow">🗣️ 읽어주기 목소리${seg('voice', [[true, '켜기'], [false, '끄기']])}</div>
-    ${['jian', 'jia'].map(k => `<div class="setrow"><span style="font-size:20px">${prof(k)}</span><span class="row"><button class="btn tiny white" data-more="${k}">+10분</button><button class="btn tiny white" data-reset="${k}">처음부터</button></span></div>`).join('')}
+    ${KID_ORDER.map(k => `<div class="setrow"><span style="font-size:20px">${prof(k)}</span><span class="row"><button class="btn tiny white" data-more="${k}">+10분</button><button class="btn tiny white" data-reset="${k}">처음부터</button></span></div>`).join('')}
     <div class="setrow"><span>🎁 공부별 보상 · 쿠폰 · 공부 리포트</span><button class="btn tiny" id="rw">열기</button></div>
     <div class="setrow"><span style="font-size:20px">저장: 이 기기${Store.remote ? ' + 클로드 계정(다른 기기에서도 이어서)' : ''}</span><button class="btn tiny white" id="chpin">비밀번호 바꾸기</button></div>
     <div class="muted" style="font-size:18px;margin-top:10px">v1.2 · 다음 업데이트: 친구 안은별·이채은 등장</div></div></div>`, { close: true, onClose: renderTitle });

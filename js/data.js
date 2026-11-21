@@ -6,7 +6,11 @@ const KIDS = {
   jia:  { key: 'jia',  name: '지아', apron: '#ffd96b', face: 'img/chars/jia_face.webp',
           poses: [0,1,2,3,4,5,6,7].map(i => `img/chars/jia${i}.webp`),
           defaultShop: '지아네 아이스크림', mode: 'small' },
+  eunbyeol: { key: 'eunbyeol', name: '은별', apron: '#7cc4f0', face: 'img/chars/eunbyeol_face.webp',
+          poses: [0,1,2,3,4,5,6,7].map(i => `img/chars/eunbyeol${i}.webp`),
+          defaultShop: '은별이네 아이스크림', mode: 'big' },
 };
+const KID_ORDER = ['jian', 'jia', 'eunbyeol'];
 // pose index
 const POSE = { idle: 0, jump: 1, oops: 2, wave: 3, scoop: 4, clap: 5, think: 6, thumb: 7 };
 
@@ -166,6 +170,7 @@ const UPGRADES = {
 const DEFAULT_REWARDS = {
   jia:  [['🍬','사탕',10],['🍪','과자',20],['🍦','아이스크림',35],['🍢','떡볶이 간식',50],['🍔','햄버거',70],['🌶️','마라탕',100]],
   jian: [['🍬','사탕',15],['🍪','과자',30],['🍦','아이스크림',50],['🍢','떡볶이 간식',70],['🍔','햄버거',100],['🌶️','마라탕',140]],
+  eunbyeol: [['🍬','사탕',15],['🍪','과자',30],['🍦','아이스크림',50],['🍢','떡볶이 간식',70],['🍔','햄버거',100],['🌶️','마라탕',140]],
 };
 const REWARD_IMG = { '🍬': 'candy', '🍪': 'snack', '🍦': 'icecream', '🍢': 'tteok', '🍔': 'burger', '🌶️': 'mala' };
 const HELP_PER_DAY = 3;

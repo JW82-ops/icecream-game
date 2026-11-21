@@ -487,3 +487,13 @@ button{font-family:inherit;}
 #stage.portrait #quiz .family-pop{left:auto;right:8px;bottom:auto;top:-150px;flex-direction:row-reverse;}
 #stage.portrait #quiz .family-pop img{height:170px;}
 #stage.portrait #quiz .family-pop .fbub{margin-bottom:20px;font-size:20px;}
+
+/* 3명 */
+#profiles{gap:22px;}
+.pcard{width:300px;padding:14px;gap:10px;}
+.pcard img{width:84px;height:94px;}
+.pcard .nm{font-size:32px;}
+.pcard .sub{font-size:17px;}
+.pstar{font-size:16px;}
+#stage.portrait .pcard{width:560px;}
+#stage.portrait #profiles{gap:18px;bottom:40px;}

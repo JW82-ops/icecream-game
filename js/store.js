@@ -26,7 +26,7 @@ const Store = (() => {
       if (!d || !u) return;
       const id = await u.id(); if (!id) return;
       db = d; uid = id;
-      const keys = ['jian', 'jia', 'settings'];
+      const keys = ['jian', 'jia', 'eunbyeol', 'settings'];
       for (const k of keys) {
         try {
           const snap = await db.doc(`data/users/${uid}/saves`).collection('kids').doc(k).get();

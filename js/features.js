@@ -7,7 +7,10 @@ function migrate12(p) {
   p.upgrades = p.upgrades || {}; p.mail = p.mail || []; p.studyLog = p.studyLog || {};
   p.bestTower = p.bestTower || 0; p.bestCombo = p.bestCombo || 0;
 }
-function otherKid() { return P.kid === 'jian' ? 'jia' : 'jian'; }
+function friendKeys() { return KID_ORDER.filter(k => k !== P.kid); }
+let friendSel = null;
+function otherKid() { if (D && D.sisKid) return D.sisKid; const f = friendKeys(); return f.includes(friendSel) ? friendSel : f[0]; }
+function callName(from, to) { const n = KIDS[from].name; if (from === 'jian' && to === 'jia') return n + ' 언니'; if (from === 'eunbyeol' && to === 'jia') return n + ' 언니'; return n; }
 function up(k) { return !!(P && P.upgrades && P.upgrades[k]); }
 
 /* ---------- 이미지 도우미 ---------- */
@@ -17,7 +20,7 @@ function custImg(type, happy) {
   return `img/cust/${type}${happy ? '_h' : ''}.webp`;
 }
 function custInfo(type) {
-  if (type === 'sis') { const o = KIDS[otherKid()]; return { name: `${o.name} ${P.kid === 'jia' ? '언니' : ''}`.trim(), h: o.key === 'jia' ? 215 : 240 }; }
+  if (type === 'sis') { const o = KIDS[otherKid()]; return { name: callName(o.key, P.kid), h: o.key === 'jia' ? 215 : 240 }; }
   return CUSTOMERS[type];
 }
 
@@ -235,7 +238,13 @@ function hubCoupons(el, refresh) {
 
 /* ---------- 자매 가게 ---------- */
 function hubSister(el, refresh) {
-  const ok = otherKid(); const o = KIDS[ok]; const sp = Store.load(ok);
+  const fk = friendKeys(); if (!fk.includes(friendSel)) friendSel = fk[0];
+  el.innerHTML = `<div class="tabs">${fk.map(k => `<div class="tab ${k === friendSel ? 'on' : ''}" data-f="${k}"><img src="${KIDS[k].face}" style="height:34px;border-radius:10px;vertical-align:middle"> ${KIDS[k].name} 가게</div>`).join('')}</div><div id="fbody"></div>`;
+  $$('[data-f]', el).forEach(t => t.onclick = () => { Sound.sfx('tap'); friendSel = t.dataset.f; hubSister(el, refresh); });
+  friendBody(el.querySelector('#fbody'), refresh);
+}
+function friendBody(el, refresh) {
+  const ok = friendSel; const o = KIDS[ok]; const sp = Store.load(ok);
   if (!sp) { el.innerHTML = `<div class="center" style="margin-top:40px"><img src="${o.face}" style="height:140px;border-radius:24px"><div style="font-size:28px;margin-top:10px">${o.name}는 아직 가게가 없어요.<br>${o.name}도 가게를 열면 서로 놀러 갈 수 있어요!</div></div>`; return; }
   migrate12(sp);
   el.innerHTML = `<div class="row" style="gap:26px;align-items:flex-start;justify-content:center">
@@ -249,7 +258,7 @@ function hubSister(el, refresh) {
         <button class="btn small purple" data-g="sticker">⭐ 내 스티커 1장</button>
         <button class="btn small" data-g="heart">💌 응원 편지</button></div>
       <div class="muted" style="font-size:20px;margin-top:16px">🏃 ${o.name}도 가끔 내 가게에 손님으로 놀러 와요! 맛있게 만들어 주면 하트를 많이 줘요.</div></div></div>`;
-  const sentToday = (P.giftDate === today());
+  const sentToday = ((P.giftDates || {})[ok] === today());
   $$('[data-g]', el).forEach(b => {
     if (sentToday) b.disabled = true;
     b.onclick = () => {
@@ -258,7 +267,7 @@ function hubSister(el, refresh) {
       if (g === 'sticker') { if (!P.stickers.length) { Sound.sfx('bad'); toast('보낼 스티커가 없어요!'); return; } item.sticker = P.stickers[P.stickers.length - 1]; }
       if (g === 'heart') item.letter = true;
       const s2 = Store.load(ok); migrate12(s2); s2.mail.push(item); Store.save(ok, s2);
-      P.giftDate = today(); saveP(); Sound.sfx('buy'); toast(`💌 ${o.name}에게 선물을 보냈어요!`); refresh();
+      P.giftDates = P.giftDates || {}; P.giftDates[ok] = today(); saveP(); Sound.sfx('buy'); toast(`💌 ${o.name}에게 선물을 보냈어요!`); refresh();
     };
   });
 }
@@ -272,9 +281,9 @@ async function checkMail() {
     if (it.letter) { P.rep += 5; txt = `응원 편지 💌 (하트 +5)`; }
     await new Promise(res => {
       const m = modal(`<div style="width:680px;padding:26px" class="center"><div style="font-size:30px;color:#9a6a86">💌 선물이 도착했어요!</div>
-        <img src="${from.poses[POSE.wave]}" style="height:220px;margin:8px"><h2>${from.name}${it.from === 'jian' ? ' 언니' : ''}가 보냈어요</h2><div style="font-size:30px;margin:8px 0">${txt}</div>
+        <img src="${from.poses[POSE.wave]}" style="height:220px;margin:8px"><h2>${callName(it.from, P.kid)}가 보냈어요</h2><div style="font-size:30px;margin:8px 0">${txt}</div>
         <button class="btn yellow" id="ok">고마워! 💕</button></div>`);
-      Sound.sfx('sparkle'); if (S.voice) Sound.say(`${from.name}가 선물을 보냈어요!`);
+      Sound.sfx('sparkle'); if (S.voice) Sound.say(`${callName(it.from, P.kid)}가 선물을 보냈어요!`);
       m.querySelector('#ok').onclick = () => { Sound.sfx('tap'); m.close(); res(); };
     });
   }
@@ -335,7 +344,8 @@ function parentRewards() {
   const draw = () => {
     S.rewards = S.rewards || JSON.parse(JSON.stringify(DEFAULT_REWARDS));
     const body = m.querySelector('#pr');
-    body.innerHTML = ['jian', 'jia'].map(k => {
+    KID_ORDER.forEach(k => { if (!S.rewards[k]) S.rewards[k] = JSON.parse(JSON.stringify(DEFAULT_REWARDS[k])); });
+    body.innerHTML = KID_ORDER.map(k => {
       const p = Store.load(k); if (p) migrate12(p);
       const days = Object.keys(p ? p.studyLog : {}).slice(-7);
       const wk = days.reduce((a, d) => { const l = p.studyLog[d]; a.r += l.right; a.t += l.total; a.s += l.stars; return a; }, { r: 0, t: 0, s: 0 });
